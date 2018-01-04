@@ -1,7 +1,7 @@
 #!/usr/local/bin/perl
 #/usr/local/bin/SecureMyEmail/Eighteen/eighteen_check_mail.pl
 # Created on 16 June, 2009
-# Last modified on: 13 Jan, 2010
+# Last modified on: 4 Jan, 2018
 # Copyright 2009 - Arapaut V Sivaprasad and WebGenie Software Pty Ltd.
 #--------------------------------------
 
