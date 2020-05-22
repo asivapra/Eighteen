@@ -177,8 +177,9 @@ sub AntiVirusCheck
 	$virus = 0;
 #$pid = $$;	
 #print "pid = $pid; $mailfile\n";	
-#&RecordLogs("2c. In ForwardCleanMails\n");
-	$result = `clamscan -r $mailfile`;
+#&RecordLogs("2c. In AntiVirusCheck: $pid; $mailfile\n");
+#	$result = `clamscan -r $mailfile`;
+	$result = `clamdscan --fdpass $mailfile`;
 	@result = split (/\n/, $result);
 	foreach $line (@result)
 	{
@@ -258,7 +259,7 @@ sub AlterMessage_ID
 sub DeliverToCleanMailbox
 {
 #&RecordLogs("2a. In ForwardCleanMails\n");
-	&AntiVirusCheck; # Put through CLAMAV. This comes before clean mail delivery
+	&AntiVirusCheck; # Put through CLAMAV. This comes before clean mail delivery. 
 #&RecordLogs("2b. In virus2 = $virus\n");
 	if ($virus)
 	{
@@ -539,6 +540,10 @@ sub SelfSpoofCheck
 	# Checking for self spoof when the IP = 0.0.0.0 is meaningless. So, pass it for other tests
 	if ($ip == '0.0.0.0') 
 	{
+		if ($senderEmail =~ /avs\@webgenie.com/i)
+		{
+			return 1;
+		}
 		return 0; 
 	}
 	# See if this domain has is in 'selfspoofcheck' 
