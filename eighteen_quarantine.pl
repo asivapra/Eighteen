@@ -294,7 +294,8 @@ sub CleanItViaGmail
 #$bannedSubj = &CheckBannedSubject;  
 #if ($bannedSubj) { return; }
 #		$notignored = &CheckIgnoredList('CleanItViaGmail');
-#		&AntiVirusCheck; # Put through CLAMAV. This comes before clean mail delivery
+		&AntiVirusCheck; # Put through CLAMAV. This comes before clean mail delivery
+#&RecordLogs("		if (!$virus && $sascore <= $saThreshold)");
 		if (!$virus && $sascore <= $saThreshold)
 		{
 #			&AddToBeIgnored;
@@ -309,6 +310,10 @@ sub CleanItViaGmail
 			{
 				&RecordLogs("CleanItViaGmail: Not Sent. IgnoredList: $da_reason\n");	
 			}
+		}
+		if ($virus)
+		{
+				&RecordLogs("*** Virus Mail: Deleted\n");	
 		}
 	}
 	if ($notify == 0)

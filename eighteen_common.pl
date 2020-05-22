@@ -188,6 +188,7 @@ sub AntiVirusCheck
 #&RecordLogs("2c1. In virus = $line\n");
 			my @fields = split (/: /, $line);
 			$virus = $fields[1];
+			if ($virus) { `rm $mailfile`; } # Delete the mail containing virus.
 			last;
 		}
 	}
