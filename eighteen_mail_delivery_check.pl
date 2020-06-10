@@ -7,13 +7,12 @@
 #------------------------------------------------------------------------------
 
 use List::MoreUtils qw(firstidx);
-require "/var/www/vhosts/webgenie.com/cgi-bin/debug.pl";
+#require "/var/www/vhosts/webgenie.com/cgi-bin/debug.pl";
 
 sub SendMailToOwner
 {
 	my $Owner_name = "Mail Delivery Monitor";
 	my $Owner_email = 'avs2904@webgenie.com';
-#	$filecontent = $content;
 	$tfilecontent =  "From:$Owner_name <$Owner_email>\n";
 	$tfilecontent .=  "To:$Owner_name <$Owner_email>\n";
 	$tfilecontent .= "MIME-Version: 1.0\n";                                 # Inactivate this line to send text-only msg
@@ -35,7 +34,12 @@ sub SendMailToOwner
 }
 sub CheckIfDelivered
 {
-#	my @filecontent = $_[0];
+=pod
+Jun 10 20:42:51 zulu282 qmail: 1591785771.138809 starting delivery 293: msg 76424444 to remote paulsingh@jadoo.com.au
+Jun 10 20:42:51 zulu282 qmail-remote-handlers[3882]: from=avs2904@webgenie.com
+Jun 10 20:42:51 zulu282 qmail-remote-handlers[3882]: to=paulsingh@jadoo.com.au
+Jun 10 20:43:36 zulu282 qmail: 1591785816.273118 delivery 293: success: 103.146.112.32_accepted_message./Remote_host_said:_250_OK_id=1jiyCl-0004o3-HE/
+=cut
 	my $len = $#lines;
 	$content = "";
 	for (my $j0=0; $j0 <= $len; $j0++)
@@ -87,12 +91,33 @@ sub CheckIfDelivered
 							if ($line =~ /$delivery: (.*)\n$/)
 							{
 								$result = $1;
-#								&debug ("$delivery to $to_address");
 								$subject = "$delivery from $from_address to $to_address";
+								open (INP, "<$reported_lines");
+								@reported_lines = <INP>;
+								close(INP);
+								$i = firstidx { $_ =~ /$subject/ } @reported_lines;
+								if ($i >= 0)
+								{
+									print "Already Reported: $subject\n";
+									next;
+								}
+								else
+								{
+									open (OUT, ">>$reported_lines");
+									print OUT "$ProcessTime: $subject\n";
+									close(OUT);
+								}
 								print "$subject: $result\n";
-								$result =~ s/success/<font style=\"color:green; font-weight:bold\">Success<\/font>/gi;
+								if ($result !~ /success/)
+								{
+									$failed = 1;
+								}
+								$result =~ s/success/<font style=\"color:blue; font-weight:bold\">Success<\/font>/gi;
+								$result =~ s/250_OK/<font style=\"color:blue; font-weight:bold\">250_OK<\/font>/gi;
+								$result =~ s/failure/<font style=\"color:red; font-weight:bold\">Failure<\/font>/gi;
 								$content .= "$subject:\n $result<br>\n";
-								$subject = "Outgoing Mail Delivered";
+								if ($failed) {	$subject = "Outgoing Mail: Failure"; }
+								else { $subject = "Outgoing Mail: Success"; }
 								last;
 							}
 						}
@@ -115,42 +140,13 @@ sub CheckMailDelivered
 	close(INP);
 	my $len = $#filecontent;
 
-	# We must skip upto and including the line previously recorded.
-#	open (INP, "<$last_line");
-#	$check_line = <INP>;
-#	close(INP);
-	
-#	$idx = firstidx { $_ eq $check_line } @filecontent;
-#	my @lines = ();
-	# Take the last 200 lines instead of recording the last line. The latter can occassionally miss a delivery.
-	$idx = $len - 500;
+	# Take the last 1000 lines instead of recording the last line. 
+	# It takes a max of 1 min from start to finish and hence around 100 lines are sufficient. 
+	# But, during spammer attacks there may be more lines. So, take 1000 for safety.
+	$idx = $len - 1000;
 	if ($idx < 0) { $idx = 0; }
 	@lines = splice (@filecontent, $idx, $len);
-#	if ($idx >= 0) 
-#	{
-#		$idx++; # Skip the prev line.
-		# Found this line. Now, splice the array
-#		$check_line = $filecontent[$len];
-#		@lines = splice (@filecontent, $idx, $len);
-
-#		@lines = splice (@filecontent, $idx, $len);
-#		print "@lines\n";
-#		$len = $#lines;
-#		open (OUT, ">$last_line");
-#		print OUT "$check_line";
-#		close(OUT);
-#	}
-#	else
-#	{
-#		# The previous line is not in maillog. This will happen when maillog is rotated at 6:25am
-#		@lines = @filecontent;
-#		$check_line = $filecontent[$len];
-#		open (OUT, ">$last_line");
-#		print OUT "$check_line";
-#		close(OUT);
-#	}
 	$delivered = &CheckIfDelivered;
-
 }
 
 sub do_main
@@ -161,7 +157,8 @@ $ProcessTime = `/bin/date`; $ProcessTime =~ s/\n//g ;
 $mail = "/usr/sbin/sendmail";
 $maillog = "/usr/local/psa/var/log/maillog";
 $archivedir = "/usr/local/apache/sites/webgenie.com/usr/records/AVS/Mails_Delivery_Checked";
-$last_line = "$archivedir/last_line.txt";
+#$last_line = "$archivedir/last_line.txt";
+$reported_lines = "$archivedir/reported_lines.txt";
 $tmpdir = "/tmp";
 $checked_mails = "$archivedir/mails_delivered.txt";
 $mailprogram = "/usr/sbin/sendmail";
