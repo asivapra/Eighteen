@@ -1,12 +1,17 @@
 #!/usr/local/bin/perl
 # Mail forward to avs_webgenie_com@me.com
 # Created on 27/02/2020
-# Modified on: 04/06/2020
+# Modified on: 10/06/2020
 # This is run as a cron job to check and forward mails to avs2904@webgenie.com
 # to avs_webgenie_com@me.com. This is necessary to avoid an IP block by me.com
 # to mails auto-forwarded by the webgenie.com mailserver. This block probably
 # resulted from a past server attack by spammers. Changing the mail server IP
 # to something other than 188.138.91.26 and 80.86.87.172 may unblock it.
+#
+# Note: The IP block by me.com is not happening now (10/6/2020). 
+# Hence, a direct forwarding
+# from avs2904@webgenie.com ==> avs_webgenie_com@me.com works. Activate this
+# script as cron job if the IP block comes back again.
 #-------------------------------------------
 
 
@@ -25,12 +30,13 @@ sub ForwardTheMail
 {
 	$file = $_[0];
 	`cp $file $archivedir`;
-	`cp $file $tmpdir/fwd_mail.txt`;
-#	open(OUT, ">>$forwarded_mails");
-#	print OUT "$file\n";
-#	close(OUT);
+	`cp $file $mailfile`;
+	`rm -f $file`; # Delete it from iphone/Maildir/new
+	open(OUT, ">>$forwarded_mails");
+	print OUT "$ProcessTime: $file\n";
+	close(OUT);
 	
-	open(INP, "<$tmpdir/fwd_mail.txt");
+	open(INP, "<$mailfile");
 	@filecontent = <INP>;
 	close(INP);
 	my $len = $#filecontent;
@@ -125,7 +131,7 @@ sub do_main
 }
 $ProcessTime = `/bin/date`; $ProcessTime =~ s/\n//g ;
 $mail = "/usr/sbin/sendmail";
-$maildir = "/var/qmail/mailnames/webgenie.com/avs2904/Maildir/new";
+$maildir = "/var/qmail/mailnames/webgenie.com/iphone/Maildir/new";
 $tmpdir = "/tmp";
 $archivedir = "/usr/local/apache/sites/webgenie.com/usr/records/AVS/Mails_Forwarded";
 $forwarded_mails = "$archivedir/forwarded_mails.txt";
