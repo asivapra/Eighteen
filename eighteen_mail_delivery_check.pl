@@ -59,7 +59,7 @@ Jun 10 20:43:36 zulu282 qmail: 1591785816.273118 delivery 293: success: 103.146.
 				my $line = $lines[$j];
 				if ($line =~ /from=/)
 				{
-					if ($line =~ /from=$from_address/)
+					if ($line =~ /from=$from_address1/ || $line =~ /from=$from_address2/)
 					{
 						$from_address_ok = 1;
 					}
@@ -91,7 +91,7 @@ Jun 10 20:43:36 zulu282 qmail: 1591785816.273118 delivery 293: success: 103.146.
 							if ($line =~ /$delivery: (.*)\n$/)
 							{
 								$result = $1;
-								$subject = "$delivery from $from_address to $to_address";
+								$subject = "$delivery to $to_address";
 								open (INP, "<$reported_lines");
 								@reported_lines = <INP>;
 								close(INP);
@@ -113,11 +113,14 @@ Jun 10 20:43:36 zulu282 qmail: 1591785816.273118 delivery 293: success: 103.146.
 									$failed = 1;
 								}
 								$result =~ s/success/<font style=\"color:blue; font-weight:bold\">Success<\/font>/gi;
-								$result =~ s/250_OK/<font style=\"color:blue; font-weight:bold\">250_OK<\/font>/gi;
+								$result =~ s/_250_/<font style=\"color:blue; font-weight:bold\">_250_<\/font>/gi;
+
 								$result =~ s/failure/<font style=\"color:red; font-weight:bold\">Failure<\/font>/gi;
+								$result =~ s/deferral/<font style=\"color:red; font-weight:bold\">deferral<\/font>/gi;
+
 								$content .= "$subject:\n $result<br>\n";
-								if ($failed) {	$subject = "Outgoing Mail: Failure"; }
-								else { $subject = "Outgoing Mail: Success"; }
+								if ($failed) {	$subject = "Outgoing Mail: Failure - $to_address"; }
+								else { $subject = "Outgoing Mail: Success - $to_address"; }
 								last;
 							}
 						}
@@ -134,7 +137,6 @@ Jun 10 20:43:36 zulu282 qmail: 1591785816.273118 delivery 293: success: 103.146.
 }
 sub CheckMailDelivered
 {
-	chdir ($archivedir);
 	open (INP, "<$maillog");
 	@filecontent = <INP>;
 	close(INP);
@@ -154,7 +156,6 @@ sub do_main
   	  &CheckMailDelivered;
 }
 $ProcessTime = `/bin/date`; $ProcessTime =~ s/\n//g ;
-$mail = "/usr/sbin/sendmail";
 $maillog = "/usr/local/psa/var/log/maillog";
 $archivedir = "/usr/local/apache/sites/webgenie.com/usr/records/AVS/Mails_Delivery_Checked";
 #$last_line = "$archivedir/last_line.txt";
@@ -163,9 +164,9 @@ $tmpdir = "/tmp";
 $checked_mails = "$archivedir/mails_delivered.txt";
 $mailprogram = "/usr/sbin/sendmail";
 $recipient = 'avs2904@webgenie.com';
-$from_address = 'avs2904@webgenie.com';
+$from_address1 = 'avs2904@webgenie.com';
+$from_address2 = 'avs@webgenie.com';
 $mailfile = "$tmpdir/delivered_mail.txt";
-$mailprogram = "/usr/sbin/sendmail";
 $|=1;
 &do_main;
 sleep(1);
