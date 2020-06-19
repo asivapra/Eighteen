@@ -7,10 +7,32 @@
 #------------------------------------------------------------------------------
 
 require "/var/www/vhosts/webgenie.com/cgi-bin/debug.pl";
-use Time::Piece;
+use List::MoreUtils qw(firstidx);
 use DBI;
 use Date::Parse;
 use DateTime;
+use IP::Location;
+
+sub IPlocation
+{
+	my $ip = $_[0];
+	$iplocation = `wget --quiet -O - https://iplocation.com/?ip=$ip`;
+#	&d($iplocation);
+	@iplocation = split(/\n/, $iplocation);
+	my $len = $#iplocation;
+	$table_result = "<table class=\"table result-table no-script\">";
+	$i = firstidx { $_ =~ /$table_result/ } @iplocation;
+	$iplocation_table = "";
+	for (my $j=$i; $j <= $len; $j++)
+	{
+		$iplocation_table .= $iplocation[$j] . "\n";
+		if ($iplocation[$j] =~ /<\/table>/i) { last; }
+	}
+	$iplocation_table =~ s/<a href.*<\/a>//gi;
+	$iplocation_table =~ s/<th /<th align=left /gi;
+	$iplocation_table =~ s/<th>/<th align=left>/gi;
+#	&d($result_table);
+}
 
 sub TimeDiff
 {
@@ -82,7 +104,7 @@ sub AddToDatabase
 {
 	&ConnectToDBase;
 	#select user_id, rand, to_address, ip, opened_time from mails where user_id='avs123456789' and rand=123456781 and to_address='avs_webgenie_com@me.com' and ip='49.195.91.51' and status=1;
-	$query = "select user_id, to_address, opened_time from mails where user_id='$this_user_id' and rand=$this_rand and to_address='$this_address' and ip='$this_ip' and status=1 limit 0,1";
+	$query = "select user_id, to_address, opened_time from mails where user_id='$this_user_id' and rand=$this_rand and to_address='$this_address' and status=1 limit 0,1";
 #	&d($query);
 	&execute_query($query);
 	my @results = &Fetchrow_array(3);
@@ -119,6 +141,7 @@ sub AddToDatabase
 				$query = "insert into `mails` (user_id, rand, to_address, opened_time, ip, sent_time) values ('$this_user_id', '$this_rand', '$this_address', '$this_time', '$this_ip', true)";
 				&execute_query($query);
 				$subject = "Mail Opened by $this_address";
+				&IPlocation($this_ip);
 				$content = "
 				<table cellspacing=\"1\" style=\"width: 400px; border-left-style: solid; border-left-width: 1px; border-right: 1px solid #C0C0C0; border-top-style: solid; border-top-width: 1px; border-bottom: 1px solid #C0C0C0\">
 					<tr>
@@ -126,29 +149,35 @@ sub AddToDatabase
 						<td>$user_id&nbsp;</td>
 					</tr>
 					<tr>
-						<td>Sender Email:&nbsp;</td>
+						<td>Sender:&nbsp;</td>
 						<td>$user_email&nbsp;</td>
 					</tr>
 					<tr>
-						<td>Mail sent time:&nbsp;</td>
-						<td>$mailed_time&nbsp;</td>
-					</tr>
-					<tr>
-						<td>Sent to:&nbsp;</td>
+						<td>Recipient:&nbsp;</td>
 						<td>$to_address&nbsp;</td>
 					</tr>
 					<tr>
-						<td>Mail opened time:&nbsp;</td>
+						<td>Sent at:&nbsp;</td>
+						<td>$mailed_time&nbsp;</td>
+					</tr>
+					<tr>
+						<td>Opened at:&nbsp;</td>
 						<td>$this_time&nbsp;</td>
 					</tr>
 					<tr>
-						<td>IP address opened from:&nbsp;</td>
-						<td>$this_ip&nbsp;</td>
+						<td colspan=2><hr></td>
+					</tr>
+					<tr>
+						<td colspan=2>
+						<b>Location:</b><br>
+							$iplocation_table
+						</td>
 					</tr>
 				</table>
 				";
 				&d("Sending mail");
 				&SendMailToOwner;
+exit;
 			}
 		}
 #		&d("ip=$ip; this_ip=$this_ip, opened_time=$opened_time; this_time=$this_time; user_id=$user_id; this_user_id=$this_user_id; rand=$rand; this_rand=$this_rand; to_address=$to_address; this_address=$this_address");
@@ -195,8 +224,10 @@ sub FindTheSentLine
 }
 
 sub do_main
-{	
-	&TimeDiff;
+{
+#	my $ip = "49.195.91.51";	
+#	&IPlocation ($ip);
+#	&TimeDiff;
 #	&ReadTheAccessLog;
 	&FindTheSentLine;
 #	&CheckMailOpened;
@@ -212,9 +243,9 @@ $from_address = 'avs2904@webgenie.com';
 $|=1;
 &do_main;
 sleep(1);
-#CREATE TABLE `users` (`id` int(4) NOT NULL AUTO_INCREMENT,  `user_id` varchar(30) NOT NULL DEFAULT '', `user_email` varchar(30) NOT NULL DEFAULT '', `status` int(1) DEFAULT '1',  `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`user_id`), KEY (`id`)) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
 #CREATE TABLE `mails` (`id` int(4) NOT NULL AUTO_INCREMENT,  `user_id` varchar(30) NOT NULL DEFAULT '', `rand` varchar(30) NOT NULL DEFAULT '', `to_address` varchar(50) NOT NULL DEFAULT '', `sent_time` bool default null, `opened_time` varchar(30) NOT NULL DEFAULT '',  `ip` varchar(15) NOT NULL DEFAULT '', `status` int(1) DEFAULT '1',  `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
+#CREATE TABLE `users` (  `id` int(4) NOT NULL AUTO_INCREMENT,  `user_id` varchar(30) NOT NULL DEFAULT '',  `firstname` varchar(30) DEFAULT NULL,  `lastname` varchar(30) DEFAULT NULL,  `user_email` varchar(30) NOT NULL DEFAULT '',  `password` varchar(30) NOT NULL DEFAULT '',  `status` int(1) DEFAULT '1',  `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,  PRIMARY KEY (`user_id`),  KEY `id` (`id`)) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1; 
 
-#insert into `users` (user_id, user_email) values ('avs123456789', 'avs2904@webgenie.com');
+#insert into `users` (user_id, user_email, password) values ('avs123456799', 'avs2904@webgenie.com', 'test12345');
 #insert into `mails` (user_id, rand, to_address, opened_time, ip) values ('avs123456789', '123456781', 'avs_webgenie_com@me.com', 'Jun/12/2020:13:20:45', '49.195.91.51');
 
