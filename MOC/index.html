@@ -61,18 +61,18 @@ else url = 'm_geoglam.html';
 }
 </style>
 </head>
-<body onload="LoginCheckForAjax-()">
+<body onload="LoginCheckForAjax()">
 <div class="container">
     <table class="jumbotron hidden-xs" style="width:100%">
 		<tr>
-			<td>
+			<td style="width:100px">
 				<img alt="NCI" src="https://www.webgenie.com/img/wg_logo.png">
 			</td>
-			<td style="text-align:left; white-space:nowrap; padding-left:10px">
+			<td style="text-align:left; white-space:nowrap; padding-left:10px; width: 253px;">
 				<h3><span lang="en-au">Mail Opened Channel</span></h3>
 				Track your mails after delivery.
 			</td>
-			<td style="text-align:left">
+			<td style="text-align:left; width: 27px;">
 				&nbsp;</td>
 			<td style="text-align:left; white-space:nowrap">
              <div id="LoginBlock" style="display:block; text-align:right; padding-top:0px; padding-right:0px">
@@ -81,13 +81,13 @@ else url = 'm_geoglam.html';
 					<tr>
 					<td class="style56" style="font-size: 11px;">
 						<input type="hidden" name="sc_action" value="login" />
-						Email:<input type="text" name="User_email" id="User_email" style="width:121px; height:20px; background: #FEFDC8 no-repeat; font-size: 11px;" value=""/> 
+						Email:<input type="text" name="User_email" id="User_email" style="width:121px; height:20px; background: #FEFDC8 no-repeat; font-size: 11px;" value="avs@webgenie.com"/> 
 					</td>
 					<td class="style56" style="font-size: 11px;">&nbsp;
-						Password:<input type="password" name="Password" id="Password" style="width:75px;  height:20px; background: #FEFDC8 no-repeat; font-size: 11px;" value=""/>
+						Password:<input type="password" name="Password" id="Password" style="width:75px;  height:20px; background: #FEFDC8 no-repeat; font-size: 11px;" value="pmgsur"/>
 					</td>
 					<td style="width:1px">&nbsp;&nbsp;</td>
-					<td onmousedown="ajaxFunction(9,document.forms.login_form)" style="cursor:pointer; text-decoration:underline; font-size: 11px;" title="Enter the email address and password">Login</td>
+					<td onmousedown="ajaxFunction(2,document.forms.login_form)" style="cursor:pointer; text-decoration:underline; font-size: 11px;" title="Enter the email address and password">Login</td>
 					<td style="width:1px">&nbsp;&nbsp;</td>
 					<td onmousedown="ajaxFunction(1,document.forms.login_form)" style="cursor:pointer; text-decoration:underline; font-size: 11px;" title="Enter the email address and password">Signup</td>
 					<td style="width:1px">&nbsp;&nbsp;</td>
@@ -96,7 +96,7 @@ else url = 'm_geoglam.html';
 					</table>
 				</form>
 				</div>
-				<div id="LoggedinBlock" style="display:none; padding-top:0px; padding-right:0px; padding-bottom:0px; text-align:right; color: #455a64; ">
+				<div id="LoggedinBlock" style="display:block; padding-top:0px; padding-right:0px; padding-bottom:0px; text-align:right; color: #455a64; ">
 					<span style="text-decoration:underline; cursor:pointer; font-size: 11px;" onmousedown="LogOut()">Logout</span>
 				</div>	
 				&nbsp;</td>
@@ -151,11 +151,9 @@ else url = 'm_geoglam.html';
 				Recipient:
 			</td>
 			<td style="width:80%; padding-top:0px; ">
-				<input type="text" name="to_address" value="avs_webgenie_com@me.com" style="width:300px; background-color:#F7F5D7; font-size:11px;" value=""> <br>
-				<select name="to_address_list" style="width:300px; height:25px; font-size:11px; background-color:#F7F5D7" onchange="InsertAddress(this.form,this)">
+				<input type="text" name="to_address" value="" style="width:300px; background-color:#F7F5D7; font-size:11px;" value=""> <br>
+				<select name="to_address_list" id="to_address_list" style="width:300px; height:25px; font-size:11px; background-color:#F7F5D7" onchange="InsertAddress(this.form,this)">
 					<option value="">Type in above or choose an address below</option>
-					<option value="avs_webgenie_com@me.com">avs_webgenie_com@me.com</option>
-					<option value="avs@webgenie.com">avs@webgenie.com</option>
 				</select>
 			</td>
 		</tr>
@@ -165,9 +163,9 @@ else url = 'm_geoglam.html';
 				<span id="createlink" style="text-decoration:underline; cursor:pointer; display:block" title="Create the image URL" onmousedown="ValidateInput(document.forms.moc,1)">Create the image URL</span>
 				<span id="img_link" style="display: block"></span> 
 				
-				<textarea id="copytext" style="display:block; font-size:9px; font-weight:normal; width:500px; height:25px" readonly="readonly"></textarea>
-				<span id="copybutton" style="text-decoration:underline; cursor:pointer; display:block" title="Copy the image URL insert it as an image in mail body" onmousedown="CopyToClipBoard()">Copy the image URL into clipboard</span>
-				<iframe name="show_img" id="show_img" style="display:block; border:thin; width:200px; height:100px" src=""></iframe>
+				<textarea id="copytext" style="display:none; font-size:9px; font-weight:normal; width:500px; height:25px" readonly="readonly"></textarea>
+				<span id="copybutton" style="text-decoration:underline; cursor:pointer; display:none" title="Copy the image URL insert it as an image in mail body" onmousedown="CopyToClipBoard()">Copy the image URL into clipboard</span>
+				<iframe name="show_img" id="show_img" style="display:none; border:thin; width:200px; height:100px" src=""></iframe>
 			</td>
 		</tr>
 	</table>

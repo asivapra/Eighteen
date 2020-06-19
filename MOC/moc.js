@@ -71,7 +71,7 @@ function InsertAddress(form,item)
 function CSWriteCookie() 
 {
 //	CSCookieArray = new Object;
-	var name   = "MailOpened";
+	var name   = "MOC";
 	cookieVal += "; path=/";
 	var this_cookie = name + "=" + cookieVal;
 	this_cookie += "; expires=" + "Thursday, 31-Dec-2099 00:00:00 GMT";
@@ -81,10 +81,10 @@ function CSWriteCookie()
 function CSDeleteCookie() 
 {
 //	CSCookieArray = new Object;
-	var name   = "MailOpened";
+	var name   = "MOC";
 	cookieVal += "; path=/";
 	var this_cookie = name + "=" + cookieVal;
-	this_cookie += "; expires=" + "Thursday, 31-Dec-2099 00:00:00 GMT";
+	this_cookie += "; expires=" + "Thursday, 30-Dec-1999 00:00:00 GMT";
 	document.cookie = this_cookie;
 	var cookies = document.cookie;
 }
@@ -92,15 +92,16 @@ function CSReadCookie()
 {
 	cookieVal = '';
 	username = '';
-	var name    = "MailOpened";
+	var name    = "MOC";
 	var cookies = document.cookie;
+//alert(cookies);	
 	var start = cookies.indexOf(name);
 //	var mobile = detectmob();
 	if(start == -1) 
 	{
 //		var loggedIn = 0
-		document.forms.login_form.User_email.value = '';
-		document.forms.login_form.passwd.value = '';
+//		document.forms.login_form.User_email.value = '';
+//		document.forms.login_form.passwd.value = '';
 		showHide('LoginBlock','div','block');
 		showHide('LoggedinBlock','div','none');
 //		return loggedIn;
@@ -119,13 +120,23 @@ function CSReadCookie()
 		else
 		{
 			cookieVal = unescape(cookieVal);
+//alert(cookieVal);
 			next = cookieVal.indexOf("|", 0);
 			User_email = unescape(cookieVal.substring(0, next));
 			start = next+1;
 			next = cookieVal.indexOf("|", start);
 			user_id = cookieVal.substring(start, next);
-			showHide('LoginBlock','none');
-			showHide('LoggedinBlock','block');
+			start = next+1;
+			next = cookieVal.indexOf("|", start);
+			firstname = cookieVal.substring(start, next);
+			start = next+1;
+			next = cookieVal.indexOf("|", start);
+			lastname = cookieVal.substring(start, next);
+//alert(document.getElementById("LoginBlock").innerHTML);
+			showHide('LoginBlock','div','none');
+			loggedinBlockText = "<span style=\"font-size: 11px;\">" + firstname + " " + lastname + " | " + "</span>" +  "<span style=\"text-decoration:underline; cursor:pointer; font-size: 11px;\" onmousedown=\"LogOut()\">Logout</span>"
+			document.getElementById("LoggedinBlock").innerHTML = loggedinBlockText;
+			showHide('LoggedinBlock','div','block');
 		}
 	}
 
@@ -133,9 +144,14 @@ function CSReadCookie()
 	if (blankcookie > 0) return "";
 	return cookieVal;
 }	
+function GetAndListAddresses()
+{
+	ajaxFunction(3,document.forms.login_form);
+}
 function LoginCheckForAjax()
 {
 	CSReadCookie();
+	if (cookieVal) { GetAndListAddresses(); }
 }
 
 function LogOut()
@@ -179,40 +195,67 @@ function ajaxFunction(n,form,item)
  		  response = xmlHttp.responseText;
 		  if (n == 1) // Process the response
 		  {
+//alert("1. response = " + response);
 		  	var fields = response.split("?");
 		  	var img_url = fields[0];
-//			var img_href = "<a href=\"" + response + "\">" + response + "</a>";
-//			document.getElementById("img_link").innerHTML = img_href;
 			document.getElementById("copytext").innerHTML = response;
 			document.getElementById("show_img").src = img_url;
 			showHide("img_link", 'span', "none");
+			showHide("show_img", 'iframe', "block");
 			showHide("copytext", 'textarea', "block");
 			copybutton.style.color = '#0000FF';
 			showHide("copybutton", 'span', "block");
 		  }
-		  if (n == 9) // login
+		  if (n == 2) // login
 		  {
 //alert("9. response = " + response);
 			if (response)
 			{
-				user_id = response;
-				showHide('LoginBlock','none');
-				showHide('LoggedinBlock','block');
-				cookieVal = User_email + "|" + user_id;
+				fields = response.split("|");
+				user_id = fields[0];
+				firstname = fields[1];
+				lastname = fields[2];
+				showHide('LoginBlock','div','none');
+				loggedinBlockText = "<span style=\"font-size: 11px;\">" + firstname + " " + lastname + " | " + "</span>" +  "<span style=\"text-decoration:underline; cursor:pointer; font-size: 11px;\" onmousedown=\"LogOut()\">Logout</span>"
+				document.getElementById("LoggedinBlock").innerHTML = loggedinBlockText;
+				showHide('LoggedinBlock','div','block');
+				cookieVal = User_email + "|" + user_id + "|" + firstname + "|" + lastname + "|";
 				CSWriteCookie();
+				GetAndListAddresses();
 			}
 			else
 			{
 				alert('Email and/or Password is incorrect.');
 			}
 		  }
+		  if (n == 3) // GetAndListAddresses
+		  {
+//alert("3. response = " + response);
+			if (response)
+			{
+				document.getElementById("to_address_list").innerHTML = response;
+			}
+		  }
 	  }
 	}
 	if (n == 1) // Send the URL
 	{
+		CSReadCookie();
+		if (!cookieVal) 
+		{
+			document.getElementById("img_link").innerHTML = "";
+			alert("Please login first!"); 
+			return; 
+		}
 		showHide("img_link", 'span', "block");
 		showHide("copytext", 'textarea', "none");
 		showHide("copybutton", 'span', "none");
+		if (!form.to_address.value || form.to_address.value.indexOf('@') < 0 )
+		{
+			document.getElementById("img_link").innerHTML = "";
+			alert("Please choose or type in a VALID email address!"); 
+			return; 
+		}
 		pquery = 
 		"to_address=" + form.to_address.value;
 		pquery = escape(pquery);
@@ -220,13 +263,17 @@ function ajaxFunction(n,form,item)
 		var ran_number= Math.random()*5000;
 		url = cgi + "?MOC+" + ran_number + "+" + pquery;
 	}
-	if (n == 9) // login
+	if (n == 2) // login
 	{
 		var ran_number= Math.random()*5000;
 		User_email = form.User_email.value;
 		Password = form.Password.value;
-		var ran_number= Math.random()*5000;
 		url = cgi + "?login+" + ran_number + "+" + User_email + "+" + Password;
+	}
+	if (n == 3) // GetAndListAddresses
+	{
+		var ran_number= Math.random()*5000;
+		url = cgi + "?addresses+" + ran_number + "+" + user_id;
 	}
 //alert('n = ' + n + ' url = ' + url);	
 //return;
