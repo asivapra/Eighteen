@@ -243,9 +243,4 @@ $from_address = 'avs2904@webgenie.com';
 $|=1;
 &do_main;
 sleep(1);
-#CREATE TABLE `mails` (`id` int(4) NOT NULL AUTO_INCREMENT,  `user_id` varchar(30) NOT NULL DEFAULT '', `rand` varchar(30) NOT NULL DEFAULT '', `to_address` varchar(50) NOT NULL DEFAULT '', `sent_time` bool default null, `opened_time` varchar(30) NOT NULL DEFAULT '',  `ip` varchar(15) NOT NULL DEFAULT '', `status` int(1) DEFAULT '1',  `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP, PRIMARY KEY (`id`)) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1;
-#CREATE TABLE `users` (  `id` int(4) NOT NULL AUTO_INCREMENT,  `user_id` varchar(30) NOT NULL DEFAULT '',  `firstname` varchar(30) DEFAULT NULL,  `lastname` varchar(30) DEFAULT NULL,  `user_email` varchar(30) NOT NULL DEFAULT '',  `password` varchar(30) NOT NULL DEFAULT '',  `status` int(1) DEFAULT '1',  `created_date` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,  PRIMARY KEY (`user_id`),  KEY `id` (`id`)) ENGINE=MyISAM AUTO_INCREMENT=1 DEFAULT CHARSET=latin1; 
-
-#insert into `users` (user_id, user_email, password) values ('avs123456799', 'avs2904@webgenie.com', 'test12345');
-#insert into `mails` (user_id, rand, to_address, opened_time, ip) values ('avs123456789', '123456781', 'avs_webgenie_com@me.com', 'Jun/12/2020:13:20:45', '49.195.91.51');
 
